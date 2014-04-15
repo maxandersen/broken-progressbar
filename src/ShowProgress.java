@@ -58,8 +58,8 @@ public class ShowProgress extends ApplicationWindow {
     composite.setLayout(new GridLayout(1, true));
 
     // Create the indeterminate checkbox
-    final Button indeterminate = new Button(composite, SWT.CHECK);
-    indeterminate.setText("Indeterminate");
+    final Button useTaskName = new Button(composite, SWT.CHECK);
+    useTaskName.setText("Use setTaskName()");
 
     // Create the ShowProgress button
     Button showProgress = new Button(composite, SWT.NONE);
@@ -72,7 +72,7 @@ public class ShowProgress extends ApplicationWindow {
       public void widgetSelected(SelectionEvent event) {
         try {
           new ProgressMonitorDialog(shell).run(true, true,
-              new LongRunningOperation(indeterminate.getSelection()));
+              new LongRunningOperation(useTaskName.getSelection()));
         } catch (InvocationTargetException e) {
           MessageDialog.openError(shell, "Error", e.getMessage());
         } catch (InterruptedException e) {
@@ -107,15 +107,15 @@ class LongRunningOperation implements IRunnableWithProgress {
   // The increment sleep time
   private static final int INCREMENT = 1;
 
-  private boolean indeterminate;
+  private boolean useSetTaskName;
 
   /**
    * LongRunningOperation constructor
    * 
    * @param indeterminate whether the animation is unknown
    */
-  public LongRunningOperation(boolean indeterminate) {
-    this.indeterminate = indeterminate;
+  public LongRunningOperation(boolean useSetTaskName) {
+    this.useSetTaskName = useSetTaskName;
   }
 
   /**
@@ -125,15 +125,14 @@ class LongRunningOperation implements IRunnableWithProgress {
    */
   public void run(IProgressMonitor monitor) throws InvocationTargetException,
       InterruptedException {
-    monitor.beginTask("Running long running operation",
-        indeterminate ? IProgressMonitor.UNKNOWN : TOTAL_TIME);
+    monitor.beginTask("Running long running operation", TOTAL_TIME);
     for (int total = 0; total < TOTAL_TIME && !monitor.isCanceled(); total += INCREMENT) {
      //Thread.sleep(INCREMENT);
       monitor.worked(INCREMENT);
      
       if (total > TOTAL_TIME / 3) monitor.subTask("setting subtask" + total);
       // removing this line makes it finish instantly on all OS. Keeping it makes it slow on OSX
-      if (total > TOTAL_TIME / 2 || total < TOTAL_TIME / 3 ) monitor.setTaskName("setTaskname " + total);
+      if (useSetTaskName) monitor.setTaskName("setTaskname " + total);
       // the click on cancel in dialog never makes it to the monitor - if it did it should cancel instantly.
       if (monitor.isCanceled())
           throw new InterruptedException("The long running operation was cancelled at step "+total);
