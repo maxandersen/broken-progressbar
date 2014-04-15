@@ -130,8 +130,11 @@ class LongRunningOperation implements IRunnableWithProgress {
     for (int total = 0; total < TOTAL_TIME && !monitor.isCanceled(); total += INCREMENT) {
      //Thread.sleep(INCREMENT);
       monitor.worked(INCREMENT);
-      if (total < TOTAL_TIME / 3) monitor.subTask("setting subtask" + total);
+     
+      if (total > TOTAL_TIME / 3) monitor.subTask("setting subtask" + total);
+      // removing this line makes it finish instantly on all OS. Keeping it makes it slow on OSX
       if (total > TOTAL_TIME / 2 || total < TOTAL_TIME / 3 ) monitor.setTaskName("setTaskname " + total);
+      // the click on cancel in dialog never makes it to the monitor - if it did it should cancel instantly.
       if (monitor.isCanceled())
           throw new InterruptedException("The long running operation was cancelled at step "+total);
     }
